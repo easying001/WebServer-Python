@@ -74,9 +74,10 @@ if __name__ == "__main__":
                       'dueros-device-id':dueros_device_id, \
                       'content-type':'multipart/form-data; boundary={0}'.format(boundary)}
 
-    downchannel_id = httpConn.request('GET', path_get_directives, headers-requestHeaders)
+    downchannel_id = httpConn.request('GET', path_get_directives, headers=requestHeaders)
     downchannel_resp = httpConn.get_response(downchannel_id)
     print downchannel_resp.status
+    print downchannel_resp.headers
 
     message_id = "123456"
     dialog_id = "adcdefg"
