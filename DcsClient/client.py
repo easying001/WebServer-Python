@@ -77,10 +77,11 @@ if __name__ == "__main__":
     message_id = "123456"
     dialog_id = "adcdefg"
     audio_format = "AUDIO_L16_RATE_16000_CHANNELS_1"
+    print "start reading user's speech file"
     audio_data = read_wave_data('voice.wav')
-
+    print "start building multipart body"
     post_body = get_multipart_data(message_id, dialog_id, audio_format, audio_data)
-
+    print "post http request"
     httpConn.request('POST', path_upload_voice_data, headers=requestHeaders, body=post_body)
     response = httpConn.get_response();
-
+    print response
