@@ -1,5 +1,6 @@
 import wave
 import json
+import cgi
 from hyper import HTTP20Connection
 
 
@@ -79,9 +80,15 @@ if __name__ == "__main__":
     print downchannel_resp.status
     print downchannel_resp.headers
 
+    ctype, pdict = cgi.parse_header(downchannel_resp.headers['content-type'][0].decode('utf-8'))
+    downchannel_boundary = '--{}'.format(pdict['boundary']).encode('utf-8')
+    downchannel = httpConn.streams[downchannel_id]
+
     message_id = "123456"
     dialog_id = "adcdefg"
     audio_format = "AUDIO_L16_RATE_16000_CHANNELS_1"
+
+
     print "start reading user's speech file"
     audio_data = read_wave_data('voice.wav')
     print "start building multipart body"
@@ -89,4 +96,4 @@ if __name__ == "__main__":
     print "post http request"
     httpConn.request('POST', path_upload_voice_data, headers=requestHeaders, body=post_body)
     response = httpConn.get_response();
-    print response
+    print response.status
