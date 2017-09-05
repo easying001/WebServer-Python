@@ -7,7 +7,7 @@ bearer='Bearer '
 token='21.a27d49b449aa58116fd36d74683e37d5.2592000.1497106502.1813294370-9508810'
 authorization=bearer+token
 dueros_device_id='ffffffff-e76f-1bdf-0000-000063ec21a0'
-host='dueros-h2.baidu.com'
+host='dueros-h2.baidu.com:443'
 path_get_directives='/dcs/v1/directives'
 path_upload_voice_data='/dcs/v1/events'
 boundary='this-is-a-boundary'
@@ -69,10 +69,14 @@ def get_multipart_data(message_id, dialog_id, format, data):
 
 if __name__ == "__main__":
 
-    httpConn = HTTP20Connection(host)
+    httpConn = HTTP20Connection(host, force_proto='h2')
     requestHeaders = {'authorization':authorization, \
                       'dueros-device-id':dueros_device_id, \
                       'content-type':'multipart/form-data; boundary={0}'.format(boundary)}
+
+    downchannel_id = httpConn.request('GET', path_get_directives, headers-requestHeaders)
+    downchannel_resp = httpConn.get_response(downchannel_id)
+    print downchannel_resp.status
 
     message_id = "123456"
     dialog_id = "adcdefg"
