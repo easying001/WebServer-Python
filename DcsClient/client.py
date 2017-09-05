@@ -4,7 +4,7 @@ from hyper import HTTP20Connection
 
 
 bearer='Bearer '
-token='23.027c7321a14bdbf673adc59b154b43b1.2592000.1502956721.2550887388-9874433'
+token='21.a27d49b449aa58116fd36d74683e37d5.2592000.1497106502.1813294370-9508810'
 authorization=bearer+token
 dueros_device_id='ffffffff-e76f-1bdf-0000-000063ec21a0'
 host='dueros-h2.baidu.com'
