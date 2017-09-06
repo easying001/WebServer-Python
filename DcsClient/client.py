@@ -2,7 +2,7 @@ import wave
 import json
 import cgi
 from hyper import HTTP20Connection
-
+from recoder import FileRecoder
 
 bearer='Bearer '
 token='21.a27d49b449aa58116fd36d74683e37d5.2592000.1497106502.1813294370-9508810'
@@ -14,18 +14,7 @@ path_upload_voice_data='/dcs/v1/events'
 boundary='this-is-a-boundary'
 crlf = '\r\n'
 
-def read_wave_data(file_path):
-    #open a wave file, and return a Wave_read object
-    f = wave.open(file_path,"rb")
-    #read the wave's format infomation,and return a tuple
-    params = f.getparams()
-    #get the info
-    nchannels, sampwidth, framerate, nframes = params[:4]
-    #Reads and returns nframes of audio, as a string of bytes.
-    str_data = f.readframes(nframes)
-    #close the stream
-    f.close()
-    return str_data
+
 
 def get_multipart_data(message_id, dialog_id, format, data):
     event={'clientContext':['ai.dueros.device_interface.alerts.AlertsState','ai.dueros.device_interface.audio_player.PlaybackState','ai.dueros.device_interface.speaker_controller.VolumeState','ai.dueros.device_interface.voice_output.SpeechState'], \
@@ -69,7 +58,32 @@ def get_multipart_data(message_id, dialog_id, format, data):
     return upload_data
 
 if __name__ == "__main__":
+    host_url = 'dueros-h2.baidu.com'
+    access_token = 'Bearer 21.a27d49b449aa58116fd36d74683e37d5.2592000.1497106502.1813294370-9508810'
+    device_id = 'ffffffff-e76f-1bdf-0000-000063ec21a0'
+    api = 'dcs/v1'
 
+    done = False
+    recoder = FileRecoder('voice.wav')
+
+    while not done:
+        recoder.read(0, 320)
+        httpConn = HTTP20Connection('{}:443'.format(host_url), force_proto='h2')
+        headers = {'authorization': 'Bearer {}'.format(access_token)}
+        headers['dueros-device-id'] = device_id
+
+        downChannelId = httpConn.request('GET', '/{}/directives'.format(api), headers=headers)
+        response = httpConn.get_response(downChannelId)
+        if response.status != 200:
+            print 'request returns status = %d' %(response.status)
+
+        print 'headers for response = %s' %(response.headers)
+
+        done = True
+
+    print 'end of mainloop'
+
+'''
     httpConn = HTTP20Connection(host, force_proto='h2')
     requestHeaders = {'authorization':authorization, \
                       'dueros-device-id':dueros_device_id, \
@@ -96,4 +110,4 @@ if __name__ == "__main__":
     print "post http request"
     httpConn.request('POST', path_upload_voice_data, headers=requestHeaders, body=post_body)
     response = httpConn.get_response();
-    print response.status
+    print response.status '''
