@@ -1,6 +1,7 @@
 import wave
 import json
 import cgi
+import datetime
 from hyper import HTTP20Connection
 from recoder import FileRecoder
 
@@ -62,6 +63,23 @@ if __name__ == "__main__":
     access_token = 'Bearer 21.a27d49b449aa58116fd36d74683e37d5.2592000.1497106502.1813294370-9508810'
     device_id = 'ffffffff-e76f-1bdf-0000-000063ec21a0'
     api = 'dcs/v1'
+    message_id = '123456'
+    dialog_id = 'abcdefg'
+    format = ''
+    context = {"clientContext":['ai.dueros.device_interface.alerts.AlertsState',
+                                'ai.dueros.device_interface.audio_player.PlaybackState',
+                                'ai.dueros.device_interface.speaker_controller.VolumeState',
+                                'ai.dueros.device_interface.voice_output.SpeechState'],}
+    event = {'header':
+                 {'namespace':'ai.dueros.device_interface.voice_input', \
+                  'name':'ListenStarted', \
+                  'messageId':message_id, \
+                  'dialogRequestId':dialog_id
+                 },
+            'payload':
+                {'format':format
+                }
+            }
 
     done = False
     recoder = FileRecoder('voice.wav')
@@ -77,7 +95,47 @@ if __name__ == "__main__":
         if response.status != 200:
             print 'request returns status = %d' %(response.status)
 
-        print 'headers for response = %s' %(response.headers)
+        # print 'headers for response = %s' %(response.headers)
+        ctype, pdict = cgi.parse_header(response.headers['content-type'][0].decode('utf-8'))
+        boundary = '--{}'.format(pdict['boundary']).encode('utf-8')
+        downchannel = httpConn.streams[downChannelId]
+        ping_period = datetime.datetime.utcnow() + datetime.timedelta(seconds=240)
+
+        headers = {
+            ':method': 'POST',
+            ':scheme': 'https',
+            ':path': '/{}/events'.format(api),
+            'authorization': 'Bearer {}'.format(token),
+            'content-type': 'multipart/form-data; boundary={}'.format(boundary)
+        }
+
+        headers['dueros-device-id'] = device_id
+        # this should be the first call for sending a given http request to a server.
+        # it returns a stream ID for the given connection that should be passed to all
+        # subsequent request building calls
+        stream_id = httpConn.putrequest(headers[':method'], headers[':path'])
+
+        default_headers = (':method', ':scheme', ':authority', ':path')
+        for name, value in headers.items():
+            is_default = name in default_headers
+            # send an http header to server with name header and its value
+            # it queues the headers up to be sent when you call endheaders()
+            httpConn.putheader(name, value, stream_id, replace=is_default)
+
+        httpConn.endheaders(final=False, stream_id=stream_id)
+
+        metadata = {
+            'context': context,
+            'event': event
+        }
+        json_part = '--{}\r\n'.format(boundary)
+        json_part += 'Content-Disposition: form-data; name="metadata"\r\n'
+        json_part += 'Content-Type: application/json; charset=UTF-8\r\n\r\n'
+        json_part += json.dumps(metadata)
+        print json_part.encode('utf-8')
+
+        httpConn.send(json_part.encode('utf-8'), final=False, stream_id=stream_id)
+
 
         done = True
 
