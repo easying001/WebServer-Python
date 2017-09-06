@@ -137,7 +137,7 @@ if __name__ == "__main__":
         httpConn.send(json_part.encode('utf-8'), final=False, stream_id=stream_id)
 
         resp = httpConn.get_response(stream_id)
-        print resp
+        print resp.headers
 
         done = True
 
